@@ -1,7 +1,7 @@
 import board
 from time import sleep
 from adafruit_dht import DHT22, DHT11
-from eventhook import EventHook
+from lib.eventhook import EventHook
 from threading import Timer
 
 """
@@ -31,10 +31,10 @@ class Sensor(object):
         while count < 5:
             try:
                 # Print the values to the serial port
-                temperature_c = dhtDevice.temperature
+                temperature_c = self.sensor.temperature
                 if temperature_c:
                     temperature_f = temperature_c * (9 / 5) + 32
-                    humidity = dhtDevice.humidity
+                    humidity = self.sensor.humidity
                     return { 'temperature_f': temperature_f, 'temperature_c': temperature_c, 'humidity': humidity }
             except RuntimeError as error:
                 pass
@@ -58,4 +58,4 @@ class Sensor(object):
         # self._timer = None
         self._timer = Timer(self.interval, self._run)
         self._timer.start()
-        self.onStateChange.fire(self.temperature)
+        self.onInterval.fire(self.temperature)
