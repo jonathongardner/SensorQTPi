@@ -1,0 +1,14 @@
+mqtt:
+    host:
+    port:
+    user:
+    password:
+#    discovery: true #defaults to false, uncomment to enable home-assistant discovery
+#    discovery_prefix: homeassistant #change to match with setting of home-assistant
+sensors:
+    -
+        id:
+#        name: #defaults to an unsanitized version of the id paramater
+        pin:
+        interval: # time between sending updates in minutes
+        state_topic: "home-assistant/sensor"
