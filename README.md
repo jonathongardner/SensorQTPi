@@ -61,21 +61,21 @@ sensors:
 
 ### Optional configuration
 There are three optional configuration parameters.  
-Two of the option parameters are for mqtt. One is to enable discovery by HomeAssistant. The second one changes the discovery prefix for HomeAssitant.
+One of the option parameters for mqtt is the discovery prefix for HomeAssitant.
 ```
 mqtt:
     host: m10.cloudmqtt.com
     port: *
     user: *
     password: *
-    discovery: true
     discovery_prefix: 'homeassistant'
 ```
 
-The discovery parameter defaults to false and should be set to true to enable discovery by HomeAssistant. If set to true, the sensor state_topic parameters are not necessary and are ignored.  
 The discovery_prefix parameter defaults to 'homeassistant' and shouldn't be changed unless changed in HomeAssistant
 
-The other option parameter is for the sensor. One to give the sensor a name for discovery.
+The other two option parameters are for the sensor. One to give the sensor a name for discovery.
+The second to give discovery values (if discovery value is empty, which is default, auto discovery
+is off).
 ```
 sensors:
     -
@@ -84,6 +84,15 @@ sensors:
         state: 17
         interval: 5 # minutes
         state_topic: "home-assistant/cover/left"
+        discovery_values:
+            -
+                name: Temperature
+                template: {{ value_json.temperature_f }}
+                unit_of_measurement: 'f'
+            -
+                name: Humidity
+                template: {{ value_json.humidity }}
+                unit_of_measurement: '%'
 ```
 
 The name parameter defaults to the unsanitized id parameter  

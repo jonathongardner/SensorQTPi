@@ -18,10 +18,9 @@ def update_state(value, topic):
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, rc):
     print("Connected with result code: %s" % mqtt.connack_string(rc))
-    # for config in CONFIG['sensors']:
-    #     command_topic = config['command_topic']
-    #     print("Listening for commands on %s" % command_topic
-    #     client.subscribe(command_topic)
+
+def sanitize_id(id):
+    return re.sub('\W+', '', re.sub('\s', ' ', id))
 
 with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'config.yaml'), 'r') as ymlfile:
     CONFIG = yaml.load(ymlfile)
@@ -52,15 +51,9 @@ if __name__ == "__main__":
             sensorCfg['name'] = sensorCfg['id']
 
         # Sanitize id value for mqtt
-        sensorCfg['id'] = re.sub('\W+', '', re.sub('\s', ' ', sensorCfg['id']))
-
-        if discovery is True:
-            base_topic = discovery_prefix + "/sensor/" + sensorCfg['id']
-            config_topic = base_topic + "/config"
-            sensorCfg['state_topic'] = base_topic + "/state"
+        sensorCfg['id'] = sanitize_id(sensorCfg['id'])
 
         state_topic = sensorCfg['state_topic']
-
 
         sensor = Sensor(sensorCfg)
 
@@ -73,22 +66,26 @@ if __name__ == "__main__":
         # Publish initial sensor value
         sensor.start()
 
-        # If discovery is enabled publish configuration
-        if discovery is True:
-            temp_config = {
-                'name': '{name} Temperature'.format(name=sensorCfg['name']),
+        # If discovery values publish configuration
+        for dv in sensorCfg.get('discovery_values', []):
+            dv['id'] = sanitize_id(dv['id'])
+
+            # If no name it set, then set to id
+            if 'name' not in dv:
+                dv['name'] = dv['id']
+
+            config_topic = '{dp}/sensor/{id_base}_{id}/config'.format(
+                dp=discovery_prefix, id_base=sensorCfg['id'], id=dv['id']
+            )
+            config = {
+                'name': '{name_base} {name}'.format(
+                    name_base=sensorCfg['name'], name=dv['name']
+                ),
                 'state_topic': state_topic,
-                'unit_of_measurement': 'f',
-                'value_template' : '{{ value_json.temperature_f }}'
+                'unit_of_measurement': dv['unit_of_measurement'],
+                'value_template' : dv['template']
             }
-            client.publish(config_topic, json.dumps(temp_config), retain=True)
-            hum_config = {
-                'name': '{name} Humidity'.format(name=sensorCfg['name']),
-                'state_topic': state_topic,
-                'unit_of_measurement': '%',
-                'value_template' : '{{ value_json.humidity }}'
-            }
-            client.publish(config_topic, json.dumps(hum_config), retain=True)
+            client.publish(config_topic, json.dumps(config), retain=True)
 
     # Main loop
     client.loop_forever()

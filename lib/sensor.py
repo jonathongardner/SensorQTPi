@@ -24,7 +24,7 @@ class Sensor(object):
         self.stop()
     # State is a read only property that actually gets its value from the pin
     @property
-    def temperature(self):
+    def value(self):
         # Read the mode from the config. Then compare the mode to the current state. IE. If the circuit is normally closed and the state is 1 then the circuit is closed.
         # and vice versa for normally open
         count = 0
@@ -58,4 +58,4 @@ class Sensor(object):
         # self._timer = None
         self._timer = Timer(self.interval, self._run)
         self._timer.start()
-        self.onInterval.fire(self.temperature)
+        self.onInterval.fire(self.value)
