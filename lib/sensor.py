@@ -11,9 +11,10 @@ from threading import Timer
 """
 class Sensor(object):
     def __init__(self, config):
-        # Config
+        # Sould make this abstract
         pin = getattr(board, "D{pin}".format(pin=config['pin']))
         self.sensor = DHT22(pin) if config.get('dht22') else DHT11(pin)
+        # Config
         self.id = config['id']
         self.interval = int(config['interval']) * 60
         self._timer = None
@@ -33,7 +34,7 @@ class Sensor(object):
                 # Print the values to the serial port
                 temperature_c = self.sensor.temperature
                 if temperature_c:
-                    temperature_f = temperature_c * (9 / 5) + 32
+                    temperature_f = round((temperature_c * (9 / 5) + 32), 2)
                     humidity = self.sensor.humidity
                     return { 'temperature_f': temperature_f, 'temperature_c': temperature_c, 'humidity': humidity }
             except RuntimeError as error:
